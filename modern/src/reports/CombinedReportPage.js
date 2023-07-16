@@ -28,6 +28,7 @@ const CombinedReportPage = () => {
   const hours12 = usePreference('twelveHourFormat');
 
   const [items, setItems] = useState([]);
+  const [allCoordinates, setAllCoordinates] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const createMarkers = () => items.flatMap((item) => item.events
@@ -46,7 +47,11 @@ const CombinedReportPage = () => {
     try {
       const response = await fetch(`/api/reports/combined?${query.toString()}`);
       if (response.ok) {
-        setItems(await response.json());
+        const result = await response.json();
+        setItems(result);
+        if (result?.length) {
+          setAllCoordinates(result.flatMap((item) => item?.route || []));
+        }
       } else {
         throw Error(await response.text());
       }
@@ -71,7 +76,7 @@ const CombinedReportPage = () => {
               ))}
               <MapMarkers markers={createMarkers()} />
             </MapView>
-            <MapCamera coordinates={items.flatMap((item) => item.route)} />
+            <MapCamera coordinates={allCoordinates} />
           </div>
         )}
         <div className={classes.containerMain}>
